@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,10 +16,12 @@ class UserController extends Controller
      */
     public function index()
     {
-        return response()->json(User::paginate());
+        $users = User::paginate();
+
+        return UserResource::collection($users);
     }
 
-    
+
     /**
      * Store a newly created resource in storage.
      *
@@ -27,11 +30,11 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $user= User::create(
-            $request->only('name','email')+
-            ['password'=>Hash::make('123456')]
+        $user = User::create(
+            $request->only('name', 'email') +
+                ['password' => Hash::make('123456')]
         );
-        return response()->json($user,201);
+        return response(new UserResource($user), 201);
     }
 
     /**
@@ -42,21 +45,9 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return response()->json($user);
-
-        //
+        return response(new UserResource($user), 201);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -65,9 +56,14 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, User $user)
     {
-        //
+
+        $user->update(
+            $request->only('name', 'email') +
+                ['password' => Hash::make($request->password)]
+        );
+        return response(new UserResource($user), 201);
     }
 
     /**
@@ -76,8 +72,10 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(User $user)
     {
-        //
+
+        $user->delete();
+        return response(null, 204);
     }
 }

@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ImageUploadController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -15,8 +19,28 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
+Route::post('/auth/register', [AuthController::class, 'register']);
+
+Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
+
+
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('/me', function(Request $request) {
+        return $request->user();
+
+    });
+
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::post('/upload', ImageUploadController::class);
+    Route::get('/export',[ OrderController::class, 'export']);
+    Route::apiResource('users',UserController::class);
+    Route::apiResource('products',ProductController::class);
+    Route::apiResource('orders',OrderController::class);
+
+});
+
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::apiResource('users',UserController::class);
